@@ -12,10 +12,7 @@ __pycache__/
 
 .ipynb_checkpoints/
 
-/Agregados_por_setores_basico_BR.csv
-/Agregados_por_setores_demografia_BR.csv
-/CNES_UBS_Sao-luis.csv
-
+Base_de_Dados/
 
 .vscode/
 .DS_Store
