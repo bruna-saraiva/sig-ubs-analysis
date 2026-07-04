@@ -41,11 +41,22 @@ Podemos usar nivel de atencao e mapear:
 ### Sequência de tarefas:
 [x] - Finalizar Setores
 [x] - Finalizar UBS
-[] - Gerar poligonos de Voronoi para estimar area de cobertura ? 
-[] - Recortar o Voronoi pelo limite de São Luís ? 
-[] - Intersectar Voronoi × Setores: assim descobrimos quais setores pertencem a cobertura de cada UBS
-[] - Calcular a populacao equivalente de cada setor contemplado pela UBS
-[] - Calcular indice de sobrecarga
+[x] - Gerar poligonos de Voronoi para estimar area de cobertura 
+[x] - Recortar o Voronoi pelo limite de São Luís 
+[x] - Intersectar Voronoi × Setores: assim descobriremos quais setores pertencem a cobertura de cada UBS
+
+[x] - Calcular a populacao equivalente de cada setor contemplado pela UBS
+  - Fórmula: `PEQ = população adulta + 1,5 × população infantil + 1,8 × população idosa`
+  - População adulta: `população total - população infantil - população idosa`
+  - Resultado: 1.663 setores calculados e 53 mantidos sem PEQ por possuírem valores suprimidos (`X`) pelo IBGE
+[x] - Calcular indice de sobrecarga
+  - Fórmula: `Is = ΣPeq / (capacidade_mes × wc)`
+  - Peso de complexidade (`wc`): Nível I = 0,8; Nível II = 1,0; Nível III = 1,3
+  - Para unidades com mais de um nível, foi considerado o maior nível informado
+  - Classificação: Adequado (`Is < 0,90`), Em risco (`0,90 ≤ Is ≤ 1,10`) e Sobrecarregado (`Is > 1,10`)
+  - Resultado: índice calculado para 63 UBS; 6 adequadas, 3 em risco e 54 sobrecarregadas
+  - Os setores com valores demográficos suprimidos (`X`) não entraram na soma de PEQ e foram contabilizados na coluna `SETORES_SEM_PEQ`
+  - O índice e a classificação de cada UBS foram associados aos respectivos `CD_SETOR` em `Dados_Tratados/indice_sobrecarga_setores.csv`, permitindo a junção com a malha no QGIS
 [] - Mapear setores de alta densidade fora de qualquer area de cobertura (zonas descobertas)
 [] - Identificar postos com inadequacao de complexidade: nivel 1 cobrindo setor com alta populacao_idosa ou populacao_infatil sem as
 especicialidades necessarias
