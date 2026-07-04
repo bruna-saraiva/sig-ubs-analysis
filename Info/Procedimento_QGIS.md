@@ -1,6 +1,8 @@
 # Procedimento de análise no QGIS
 
-Este documento descreve como reproduzir a preparação espacial das bases de setores censitários e unidades de saúde de São Luís. O objetivo é associar cada setor à UBS de referência estimada por proximidade, usando polígonos de Voronoi, e preparar as camadas para os mapas do trabalho.
+Este documento descreve como reproduzir a preparação espacial das bases de setores censitários e unidades de saúde de São Luís. O método final associa cada setor à UBS mais próxima somente quando ela estiver a até 5 km do ponto representativo do setor. Os setores sem UBS nesse limite são classificados como descobertos.
+
+Uma primeira versão do trabalho utilizou polígonos de Voronoi. Esse cenário foi preservado em arquivos iniciados por `voronoi_`, mas não representa a metodologia principal, pois o Voronoi atribui todo o território a alguma UBS e não permite identificar zonas descobertas.
 
 ## 1. Arquivos necessários
 
@@ -72,7 +74,7 @@ Geometria: coordenadas de ponto
 - Confira visualmente se os pontos aparecem em São Luís;
 - Verifique se `CNES`, `NOME FANTASIA` e `capacidade/mes` estão preenchidos;
 - Cada CNES deve aparecer apenas uma vez;
-- Remova geometrias duplicadas antes de criar o Voronoi.
+- Remova geometrias duplicadas antes de calcular buffers e proximidade.
 
 Para remover pontos exatamente repetidos:
 
@@ -96,135 +98,131 @@ setores_sao_luis_utm
 postos_saude_utm
 ```
 
-## 6. Criar as áreas de cobertura por Voronoi
+## 6. Criar um ponto representativo de cada setor
 
-1. Abra **Processamento → Caixa de ferramentas**.
-2. Procure **Polígonos de Voronoi**.
-3. Configure:
+Para garantir uma única classificação por setor:
+
+1. Procure **Ponto na superfície**;
+2. Use `setores_sao_luis_utm` como entrada;
+3. Salve como `pontos_setores_sao_luis`.
+
+Foi utilizado **Ponto na superfície** em vez de centroide porque o ponto permanece dentro do setor, inclusive em polígonos irregulares.
+
+## 7. Criar a cobertura de 5 km
+
+Abra a ferramenta **Buffer** e configure:
 
 ```text
 Camada de entrada: postos_saude_utm
-Região de buffer: aproximadamente 10%
+Distância: 5000
+Segmentos: 20
+Dissolver resultado: não
 ```
 
-4. Salve no GeoPackage:
+Salve como `buffers_ubs_5km`. Essa camada preserva um polígono e o CNES de cada UBS.
+
+Em seguida, use **Dissolver**, sem selecionar campos, para reunir todos os buffers. Salve como:
 
 ```text
-cobertura_voronoi
+cobertura_geral_5km
 ```
 
-Cada polígono representa a área geometricamente mais próxima de uma UBS. Os campos do ponto original, como CNES, nome e capacidade, devem permanecer associados ao polígono.
+É esperado que a tabela da camada dissolvida possua apenas uma linha. Sua função é indicar se uma localização está dentro do alcance de pelo menos uma UBS, e não identificar qual UBS é responsável.
 
-O Voronoi representa uma aproximação de cobertura por proximidade euclidiana. Ele não corresponde necessariamente às áreas administrativas oficiais das UBS.
+## 8. Criar o limite e as zonas descobertas
 
-## 7. Criar o limite de São Luís
+Use **Dissolver** em `setores_sao_luis_utm`, sem selecionar campos, e salve como `limite_sao_luis`.
 
-1. Procure a ferramenta **Dissolver**.
-2. Use `setores_sao_luis_utm` como entrada.
-3. Não selecione campo de dissolução, para reunir todos os setores.
-4. Salve como:
+Recorte `cobertura_geral_5km` por `limite_sao_luis` e salve como `cobertura_geral_5km_recortada`.
+
+Depois use **Diferença**:
 
 ```text
-limite_sao_luis
+Camada de entrada: limite_sao_luis
+Camada de sobreposição: cobertura_geral_5km_recortada
 ```
 
-O resultado será um único limite formado pela união dos setores.
+Salve o resultado como `zonas_descobertas_5km`.
 
-## 8. Recortar o Voronoi pelo município
+## 9. Associar cada setor à UBS mais próxima
 
-1. Abra a ferramenta **Recortar**.
-2. Configure:
+Abra **Juntar atributos pela feição mais próxima**. O nome pode aparecer como **Unir atributos pela feição mais próxima** ou `native:joinbynearest`, conforme a versão do QGIS.
 
-```text
-Camada de entrada: cobertura_voronoi
-Camada de sobreposição: limite_sao_luis
-```
-
-3. Salve como:
-
-```text
-cobertura_voronoi_sao_luis
-```
-
-Esse procedimento impede que os polígonos de cobertura avancem para fora do recorte estudado.
-
-## 9. Criar um ponto representativo de cada setor
-
-Não se deve unir diretamente os polígonos dos setores aos polígonos de Voronoi usando o predicado `intersecta`. Um setor pode atravessar mais de uma área de Voronoi e produzir linhas duplicadas.
-
-Para garantir uma única UBS por setor:
-
-1. Procure **Ponto na superfície**.
-2. Use `setores_sao_luis_utm` como entrada.
-3. Salve como:
-
-```text
-pontos_setores_sao_luis
-```
-
-Foi utilizado **Ponto na superfície** em vez de centroide porque o ponto gerado permanece dentro do setor, inclusive em polígonos de formato irregular.
-
-## 10. Associar cada setor à cobertura de uma UBS
-
-1. Abra **Unir atributos pela localização**.
-2. Configure:
+Configure:
 
 ```text
 Camada de entrada: pontos_setores_sao_luis
-Camada de união: cobertura_voronoi_sao_luis
-Predicado: dentro de
-Tipo de união: utilizar apenas a primeira feição correspondente
+Camada de união: postos_saude_utm
+Número máximo de vizinhos: 1
+Distância máxima: 5000
+Descartar registros sem correspondência: não
 ```
 
-3. Adicione pelo menos os campos:
+Salve como:
 
 ```text
-CNES
-NOME FANTASIA
-NÍVEL DE ATENÇÃO
-TURNO DE ATENDIMENTO
-latitude
-longitude
-capacidade/mes
-servicos_inferidos
+setores_cobertura_ubs_5km
 ```
 
-4. Salve como:
+A ferramenta adicionará os atributos da UBS e um campo numérico de distância, normalmente chamado `distance`. Se já existirem campos com os mesmos nomes, o QGIS poderá acrescentar sufixos como `_2`; no processamento deste projeto, os campos corretos da nova associação receberam esse sufixo.
 
-```text
-setores_ubs_associados
+## 10. Classificar os setores
+
+Abra a calculadora de campos, escolha **Atualizar campo existente** ou crie `SITUACAO_COBERTURA` como texto. Use:
+
+```qgis
+CASE
+    WHEN "distance" IS NULL THEN 'Descoberto'
+    ELSE 'Coberto'
+END
 ```
+
+Como a própria busca foi limitada a 5.000 m, uma distância preenchida identifica setor coberto. Distância nula significa que nenhuma UBS foi encontrada no limite.
+
+Não use uma classificação anterior obtida somente pela união com o buffer se ela divergir do campo `distance`. A distância gerada com os mesmos pontos e o mesmo limite é o critério final.
 
 ### Validação
 
 - Deve existir uma linha por `CD_SETOR`;
-- Não pode haver `CD_SETOR` duplicado;
-- Todos os registros devem pertencer a São Luís;
-- A quantidade de registros deve corresponder aos 1.736 setores da malha;
-- Verifique registros sem CNES;
-- Inspecione visualmente alguns setores periféricos e suas UBS associadas.
+- A camada deve conter os 1.736 setores;
+- Nenhum setor coberto pode ficar sem o CNES novo;
+- Nenhum setor descoberto deve ter distância preenchida;
+- Todas as distâncias preenchidas devem ser menores ou iguais a 5.000 m;
+- Inspecione visualmente os setores periféricos.
 
-Um ponto exatamente sobre uma fronteira ou lacuna pode ficar sem associação. Nesse caso, selecione o setor e associe-o à UBS mais próxima, registrando o ajuste.
+Se a exportação contiver duas linhas por setor, conserve a linha com `n = 1` e distância preenchida. Para setores descobertos, preserve uma única linha com distância e CNES nulos.
 
-## 11. Exportar a associação para processamento tabular
+## 11. Exportar para processamento tabular
 
-Clique com o botão direito em `setores_ubs_associados` e escolha **Exportar → Salvar feições como...**.
+Clique com o botão direito em `setores_cobertura_ubs_5km` e escolha **Exportar → Salvar feições como...**.
 
 Configure:
 
 ```text
 Formato: CSV
-Delimitador: vírgula
-Arquivo: juncao_setores_ubs.csv
+Codificação: UTF-8
+Geometria: sem geometria
+Arquivo: setores_cobertura_ubs_5km.csv
 ```
 
-O arquivo utilizado neste projeto está preservado em:
+Preserve pelo menos:
 
 ```text
-Dados_Intermediarios/juncao_setores_ubs.csv
+CD_SETOR
+SITUACAO_COBERTURA
+CNES_2
+NOME FANTASIA_2
+NÍVEL DE ATENÇÃO_2
+TURNO DE ATENDIMENTO_2
+latitude_2
+longitude_2
+capacidade/mes_2
+servicos_inferidos_2
+n
+distance
 ```
 
-Esse CSV foi unido às informações demográficas por `CD_SETOR`. Os cálculos de população equivalente e índice de sobrecarga foram realizados fora do QGIS.
+O arquivo bruto utilizado está preservado em `Dados_Intermediarios/setores_cobertura_ubs_5km_bruto.csv`. Fora do QGIS, ele foi consolidado por `CD_SETOR`, unido aos dados demográficos e utilizado para recalcular a população equivalente e o índice de sobrecarga.
 
 ## 12. Adicionar o índice calculado ao mapa
 
@@ -275,7 +273,7 @@ Sugestão de cores:
 - `Adequado`: verde;
 - `Em risco`: amarelo;
 - `Sobrecarregado`: vermelho;
-- `Sem associação`: cinza.
+- `Descoberto`: cinza.
 
 Os limites adotados são:
 
@@ -292,7 +290,8 @@ O GeoPackage final deve conter, no mínimo:
 ```text
 setores_indicadores
 postos_saude_utm
-cobertura_voronoi_sao_luis
+cobertura_geral_5km_recortada
+zonas_descobertas_5km
 limite_sao_luis
 ```
 
@@ -300,9 +299,9 @@ Também podem ser mantidas as camadas intermediárias:
 
 ```text
 setores_sao_luis_utm
-cobertura_voronoi
+buffers_ubs_5km
 pontos_setores_sao_luis
-setores_ubs_associados
+setores_cobertura_ubs_5km
 ```
 
 ## 15. Salvar o projeto
@@ -322,12 +321,16 @@ Antes de fechar:
 - Filtrar por um campo regional como `NM_RGI` em vez de `CD_MUN`;
 - Exportar todas as feições quando somente São Luís estava selecionado;
 - Calcular distâncias em coordenadas geográficas;
-- Criar Voronoi com pontos de UBS duplicados;
-- Unir polígonos dos setores ao Voronoi por interseção, gerando mais de uma linha por setor;
+- Calcular buffers ou distâncias com pontos de UBS duplicados;
+- Usar os polígonos dos setores na busca de proximidade, em vez de um único ponto representativo;
+- Definir a situação de cobertura por um campo antigo quando a busca final já fornece `distance`;
+- Contar duas vezes um setor duplicado na exportação;
 - Remover o `P` do código preliminar e tratá-lo como se fosse definitivo;
 - Fechar o QGIS mantendo resultados apenas como camadas temporárias;
 - Sobrescrever o GeoPackage inteiro ao adicionar uma nova camada.
 
 ## 17. Observação metodológica
 
-As áreas de Voronoi cobrem todo o recorte municipal e representam apenas a UBS geometricamente mais próxima. Para identificar zonas descobertas, será necessário estabelecer uma distância máxima aceitável de acesso e comparar essa distância com a localização dos setores. O Voronoi, isoladamente, não produz áreas sem cobertura.
+O limite de 5 km representa um cenário de cobertura por distância euclidiana. Ele não considera rede viária, tempo de deslocamento, barreiras físicas nem territórios administrativos oficiais das UBS.
+
+Cada setor coberto foi atribuído à UBS mais próxima dentro desse limite. Setores sem UBS a até 5 km foram classificados como descobertos e não entraram na soma da população equivalente das UBS. O cenário anterior de Voronoi foi preservado somente para comparação, pois o Voronoi cobre todo o território e não produz áreas descobertas.
