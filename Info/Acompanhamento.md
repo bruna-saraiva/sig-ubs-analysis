@@ -56,7 +56,7 @@ Podemos usar nivel de atencao e mapear:
   - Classificação: Adequado (`Is < 0,90`), Em risco (`0,90 ≤ Is ≤ 1,10`) e Sobrecarregado (`Is > 1,10`)
   - Resultado: índice calculado para 63 UBS; 6 adequadas, 3 em risco e 54 sobrecarregadas
   - Os setores com valores demográficos suprimidos (`X`) não entraram na soma de PEQ e foram contabilizados na coluna `SETORES_SEM_PEQ`
-  - O índice e a classificação de cada UBS foram associados aos respectivos `CD_SETOR` em `Dados_Tratados/indice_sobrecarga_setores.csv`, permitindo a junção com a malha no QGIS
+  - O índice e a classificação de cada UBS foram associados aos respectivos `CD_SETOR` em `Dados_Tratados/indice_sobrecarga_com_setores.csv`, permitindo a junção com a malha no QGIS
 [] - Mapear setores de alta densidade fora de qualquer area de cobertura (zonas descobertas)
 [] - Identificar postos com inadequacao de complexidade: nivel 1 cobrindo setor com alta populacao_idosa ou populacao_infatil sem as
 especicialidades necessarias
