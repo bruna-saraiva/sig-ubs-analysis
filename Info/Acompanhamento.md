@@ -63,8 +63,9 @@ Podemos usar nivel de atencao e mapear:
   - Os setores com valores demográficos suprimidos (`X`) não entraram na soma de PEQ e foram contabilizados na coluna `SETORES_SEM_PEQ`
   - O índice e a classificação de cada UBS foram associados aos respectivos `CD_SETOR` em `Dados_Tratados/indice_sobrecarga_com_setores.csv`, permitindo a junção com a malha no QGIS
 [x] - Gerar tabela dos setores fora da cobertura de 5 km em `Dados_Tratados/zonas_descobertas_5km.csv`
-[] - Mapear os setores descobertos, destacando os de maior densidade
+[x] - Mapear os setores descobertos, destacando os de maior densidade
+  - Documento: `Info/Mapeamento_setores_descobertos.md`
 [] - Identificar postos com inadequacao de complexidade: nivel 1 cobrindo setor com alta populacao_idosa ou populacao_infatil sem as
 especicialidades necessarias
-[] - Produzir mapa por diagnóstico: Is por cor, complexidade por símbolo, zonas descobertas e gradiente de densidade
+[x] - Produzir mapa por diagnóstico: Is por cor, complexidade por símbolo, zonas descobertas e gradiente de densidade
 [] - Elaborar proposta
