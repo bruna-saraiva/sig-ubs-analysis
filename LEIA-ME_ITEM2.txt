@@ -1,0 +1,197 @@
+================================================================================
+ITEM 2 - DIAGNÓSTICO ESPACIAL
+Identificação de Postos com Inadequação de Complexidade
+================================================================================
+
+DATA DA ANÁLISE: 2025-07-06
+FERRAMENTA: Python 3.13 + Pandas
+ÁREA: São Luís, Maranhão
+COBERTURA: 78.948 registros de setor-UBS
+
+================================================================================
+ARQUIVOS GERADOS
+================================================================================
+
+1. DADOS (em Dados_Tratados/)
+   ───────────────────────────
+
+   a) item2_ubs_inadequadas.csv
+      • Todas as 6.948 linhas de setor-UBS inadequados
+      • Colunas: CNES, Nome, Nível, Setor, Populações, Motivo
+      • Uso: Análise detalhada, mapeamento
+
+   b) item2_setores_criticos.csv
+      • Lista de 208 setores com alta demanda
+      • Resumido: setor → população infantil/idosa → UBS inadequada
+      • Uso: Identificar setores prioritários
+
+   c) item2_tabela_resumo.csv
+      • Versão formatada para relatório
+      • Colunas renomeadas para legibildade
+      • Uso: Incluir diretamente no documento
+
+   d) item2_graficos.png
+      • Visualizações dos resultados (4 gráficos):
+        - Distribuição de motivos de inadequação
+        - População afetada por tipo (infantil/idosa)
+        - Estatísticas de UBS analisadas
+        - Proporção de inadequação em Nível I
+      • Uso: Apresentação e relatório
+
+================================================================================
+COMO USAR OS ARQUIVOS
+================================================================================
+
+PARA RELATÓRIO ACADÊMICO:
+  1. Usar RELATORIO_ITEM2.md como base
+  2. Incluir tabela de item2_tabela_resumo.csv
+  3. Inserir gráficos de item2_graficos.png
+  4. Referenciar PROPOSTAS_INTERVENCAO_ITEM2.md nas conclusões
+
+PARA APRESENTAÇÃO:
+  1. Mostrar item2_graficos.png
+  2. Mencionar as 5 UBS inadequadas principais
+  3. Enfatizar que 100% das UBS Nível I têm inadequação
+  4. Usar números-chave (1M de habitantes afetados, 208 setores, etc.)
+
+PARA MAPEAMENTO:
+  1. Carregar item2_ubs_inadequadas.csv em SIG
+  2. Utilizar CNES como chave para vincular geometria
+  3. Colorir por MOTIVO (infantil, idoso, ambos)
+  4. Destacar os 208 setores críticos em destaque
+
+PARA PRÓXIMOS PASSOS:
+  1. Ler PROPOSTAS_INTERVENCAO_ITEM2.md
+  2. Escolher cenário (recomenda-se: Hibrido)
+  3. Preparar cronograma de implementação
+  4. Integrar com resultados do Item 1 (densidade de cobertura)
+
+================================================================================
+RESULTADOS PRINCIPAIS (RESUMO EXECUTIVO)
+================================================================================
+
+POPULAÇÃO EM RISCO:
+  • 359.271 crianças em setores com UBS inadequada para pediatria
+  • 667.662 idosos em setores com UBS inadequada para geriatria
+  • Total: 1.026.933 habitantes
+
+INTENSIDADE DO PROBLEMA:
+  • 100% das UBS de Nível I têm inadequação de complexidade
+  • 208 setores críticos (12% de todos os setores)
+  • 6.948 linhas setor-UBS inadequadas
+
+TIPO DE INADEQUAÇÃO:
+  • 52,8% por falta de atendimento infantil
+  • 28,3% por falta de atendimento ao idoso
+  • 18,9% por ambas as faltas
+
+================================================================================
+COMO ABRIR OS ARQUIVOS
+================================================================================
+
+CSV (item2_ubs_inadequadas.csv, item2_setores_criticos.csv, etc.):
+  • Excel: Abrir → Selecionar delimitador ";" (ponto-e-vírgula)
+  • Python: pd.read_csv("item2_ubs_inadequadas.csv", sep=";")
+  • QGIS: Abrir como tabela e vincular por CNES/CD_SETOR
+
+PNG (item2_graficos.png):
+  • Qualquer visualizador de imagens
+  • Resolução: 2100x1500 pixels (apropriado para apresentação)
+
+MD (RELATORIO_ITEM2.md, PROPOSTAS_INTERVENCAO_ITEM2.md):
+  • GitHub: Renderiza automaticamente em HTML
+  • VS Code: Extensão "Markdown Preview"
+  • Notepad/Word: Copiar conteúdo (textos simples)
+
+================================================================================
+PRÓXIMOS ITENS DO DIAGNÓSTICO ESPACIAL
+================================================================================
+
+Item 1 ✅ [Já completo]: Índice de Sobrecarga de UBS
+Item 2 ✅ [ESTE ITEM]: Inadequação de Complexidade
+Item 3 ⏳ [Próximo]: Análise de Vazios Assistenciais (setores sem cobertura)
+Item 4 ⏳ [Depois]: Integração de todos os itens em mapa síntese
+
+================================================================================
+INTEGRAÇÃO COM ITEM 1
+================================================================================
+
+Item 1 oferecia:
+  • Índice de sobrecarga por UBS
+  • Classificação: Adequado / Em risco / Sobrecarregado
+
+Item 2 (este) complementa com:
+  • Complexidade vs demanda populacional
+  • Inadequação de especialidades
+
+PRÓXIMAS ANÁLISES:
+  • Correlacionar: Uma UBS pode estar sobrecarregada AND inadequada
+  • Priorização: UBS sobrecarregada + inadequada = CRÍTICA
+  • Recomendação: Elevar para Nível II
+
+================================================================================
+VALIDAÇÃO DOS DADOS
+================================================================================
+
+✅ Dados de entrada verificados:
+   • indice_sobrecarga_com_setores.csv: 1.736 linhas (78.948 setor-UBS)
+   • densidade_populacional_setores_join_ubs.csv: 1.736 linhas
+   • juncao_setores_ubs.csv: 1.736 linhas
+
+✅ Merge realizado com sucesso:
+   • 78.948 combinações de setor-UBS analisadas
+   • 0% de dados faltantes no resultado
+
+✅ Critérios estatísticos validados:
+   • Percentil 75 (infantil): 46 pessoas
+   • Percentil 75 (idoso): 109 pessoas
+   • Ambas dentro de distribuição normal
+
+✅ Especialidades verificadas:
+   • 15 palavras-chave para pediatria
+   • 15 palavras-chave para geriatria
+   • Lista completa em item2_inadequacao_complexidade.py
+
+================================================================================
+RECOMENDAÇÃO FINAL
+================================================================================
+
+✅ IMPLEMENTAR CENÁRIO HIBRIDO (veja PROPOSTAS_INTERVENCAO_ITEM2.md):
+
+Fase 1 (0-2 meses):
+  • Implementar protocolo de referenciação estruturada
+  • Planejar redistribuição territorial
+
+Fase 2 (2-6 meses):
+  • Criar Núcleos Especializados (infantil + geriátrico)
+  • Implementar novo territorial
+
+Fase 3 (6-12 meses):
+  • Consolidar serviços
+  • Avaliar resultados
+
+Fase 4 (12+ meses):
+  • Expandir baseado em resultados
+  • Considerar elevar até 5 UBS para Nível II
+
+Impacto esperado: 80-90% da população inadequada coberta em 6-12 meses
+Custo: Moderado
+Viabilidade: Alta
+
+================================================================================
+CONTATO / DÚVIDAS
+================================================================================
+
+Script utilizado: item2_inadequacao_complexidade.py
+Última execução: 2025-07-06 22:30 (aprox)
+Python version: 3.13+
+Bibliotecas: pandas, numpy, matplotlib, seaborn
+
+Para reexecutar a análise com novos dados:
+  python item2_inadequacao_complexidade.py
+
+Documentação completa: RELATORIO_ITEM2.md
+
+================================================================================
+FIM DO ARQUIVO
+================================================================================
